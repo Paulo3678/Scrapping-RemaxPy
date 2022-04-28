@@ -1,0 +1,9 @@
+pip install requests # Para fazer requisições http e extraia o html da pagina
+pip install beautifulsoup # Permiti extrair informações do html pego utilizando seletores de html/css
+pip install pandas # Para passa pra csv
+pip install selenium # Para buscar dados dinâmicos
+chromewebdriver
+
+
+#Interface grafica
+tkinter
