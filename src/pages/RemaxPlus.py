@@ -64,7 +64,8 @@ class RemaxPlus:
 		#pagina.content: Conteudo da Página; html.parser: interpreta o html
 		soup 		= BeautifulSoup(pagina.content, 'html.parser')
 		indicadores	= soup.select('.card-imovel>a')
-			
+		print(indicadores)
+
 		for cardImovelA in indicadores:
 			# print(" =============== BUSCANDO DADOS DO IMÓVEL =============== \n")
 			self.app.update() # É necessário chamar root.update() de tempos em tempos para atualizar a tela gráfica do tkinter, para ver mais https://pt.stackoverflow.com/questions/337313/travamento-do-programa-ao-execultar-a-fun%C3%A7%C3%A3o-tkinter-python3
@@ -101,7 +102,8 @@ class RemaxPlus:
 		option = Options()
 		option.headless = True
 		option.add_argument("log-level=3") # Desativa os logs no terminal
-		driver = webdriver.Chrome(options=option) # options=option, faz com que o chrome não aparece e rode em background
+		driver = webdriver.Chrome() # options=option, faz com que o chrome não aparece e rode em background
+		# options=option
 
 		driver.get(urlPaginaImovel)
 
@@ -119,6 +121,7 @@ class RemaxPlus:
 		if(total_de_imagens > 15):
 			total_de_imagens = 15
 		# Clicando na seta para carregar as imagens
+		
 		for i in range(1, total_de_imagens, 1):
 			driver.find_element(By.CSS_SELECTOR, 'div.lg-next').click()
 			self.app.update()

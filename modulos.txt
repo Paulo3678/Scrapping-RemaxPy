@@ -6,4 +6,4 @@ chromewebdriver
 
 
 #Interface grafica
-tkinter
+pip install tkinter
