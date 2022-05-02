@@ -13,48 +13,22 @@ import os
 import shutil
 import time
 
+from .Page import Page
 
-class RemaxPlus:
+class RemaxPlus(Page):
 
 	def __init__(self):
-		self.app 							= None
-		self.input_url_pagina_corretor 		= None
-		self.botao_gerar_planilha			= None
-		self.label_carregando 				= None
-		self.label_dados_pegos_atualmente	= None
-		self.tamanho_botao_carregando		= 0
 		self.numero_de_imoveis_pegos 		= 0
 		self.imoves_pegos 					= []
 
 	def iniciar(self):
-		self.app = Tk()
-		self.app.title("Gerador de planilhas")
-		self.app.geometry("500x360")
-		self.app.minsize(500,360)
-		self.app.maxsize(500,360)
-		frame = ttk.LabelFrame(self.app, width=290)
-		frame.pack(padx=30, pady=70)
+		print(self)
+		paginacorretor = input("Digite a url da página do corretor: ")
 
-		label_url_pagina_corretor = ttk.Label(frame, text="Url página do corretor: ")
-		label_url_pagina_corretor.grid(row=0, column=0,sticky=W)
+		self.gerar_planilha(paginacorretor)
 
-		self.input_url_pagina_corretor = ttk.Entry(frame, width=50)
-		self.input_url_pagina_corretor.grid(row=1, columnspan=4, padx=2, pady=3)
-
-		self.botao_gerar_planilha = ttk.Button(frame, width=30, text="Gerar planilha", command=self.gerar_planilha)
-		self.botao_gerar_planilha.grid(row=4, columnspan=5, padx=30, pady=5)
-
-		self.label_carregando = ttk.Label(frame, width=0)
-		self.label_carregando.config(background="green")
-		self.label_carregando.grid(row=5, columnspan=5, padx=30, pady=5)
-
-		self.label_dados_pegos_atualmente = ttk.Label(frame, text="Total de imóveis pegos: 0")
-		self.label_dados_pegos_atualmente.grid(row=6, columnspan=4, padx=2, pady=3)
-
-		self.app.mainloop()
-
-	def gerar_planilha(self):
-		self.get_imoveis_from_corretor_page(self.input_url_pagina_corretor.get())
+	def gerar_planilha(self,paginacorretor):
+		self.get_imoveis_from_corretor_page(paginacorretor)
 
 	# funcao para realizar o webscraping
 	def get_imoveis_from_corretor_page(self, url):
@@ -64,11 +38,9 @@ class RemaxPlus:
 		#pagina.content: Conteudo da Página; html.parser: interpreta o html
 		soup 		= BeautifulSoup(pagina.content, 'html.parser')
 		indicadores	= soup.select('.card-imovel>a')
-		print(indicadores)
 
 		for cardImovelA in indicadores:
 			# print(" =============== BUSCANDO DADOS DO IMÓVEL =============== \n")
-			self.app.update() # É necessário chamar root.update() de tempos em tempos para atualizar a tela gráfica do tkinter, para ver mais https://pt.stackoverflow.com/questions/337313/travamento-do-programa-ao-execultar-a-fun%C3%A7%C3%A3o-tkinter-python3
 
 			hrefDoCard 				= cardImovelA['href'] # Pega o href de do <a>
 			urlPaginaImovel 		= f'https://remaxrs.com.br/{hrefDoCard}' # Monta a url da pagina do imovel 
@@ -84,10 +56,10 @@ class RemaxPlus:
 			dados_imovel['link_imagens'] = link_das_imagens
 		
 			self.imoves_pegos.append(dados_imovel)
-			print(self.imoves_pegos)
 			self.numero_de_imoveis_pegos += 1
-			self.label_dados_pegos_atualmente['text'] = "Total de imóveis pegos: {}".format(self.numero_de_imoveis_pegos)
-			self.atualizar_botao_carregando()
+		
+		print("TOTAL IMÓVEI PEGOS: {}".format(self.numero_de_imoveis_pegos))
+		print(self.imoves_pegos)
 
 	def elementoExiste(self, buscador_do_elemento, buscadorCss, paginaDoImovel):
 		if buscador_do_elemento in paginaDoImovel.prettify():
@@ -96,13 +68,11 @@ class RemaxPlus:
 			return None
 
 	def buscar_imagens(self, urlPaginaImovel):
-		self.app.update()
-
 		# Instanciando o Chrome
 		option = Options()
 		option.headless = True
 		option.add_argument("log-level=3") # Desativa os logs no terminal
-		driver = webdriver.Chrome() # options=option, faz com que o chrome não aparece e rode em background
+		driver = webdriver.Chrome(options=option) # options=option, faz com que o chrome não aparece e rode em background
 		# options=option
 
 		driver.get(urlPaginaImovel)
@@ -117,6 +87,7 @@ class RemaxPlus:
 		total_de_imagens 		= int(soup_total_imagens.text)
 		link_das_imagens 		= []
 		
+		time.sleep(2)
 
 		if(total_de_imagens > 15):
 			total_de_imagens = 15
@@ -124,7 +95,6 @@ class RemaxPlus:
 		
 		for i in range(1, total_de_imagens, 1):
 			driver.find_element(By.CSS_SELECTOR, 'div.lg-next').click()
-			self.app.update()
 			time.sleep(1)
 
 		# Pegando o src das imagens
@@ -132,20 +102,25 @@ class RemaxPlus:
 		html_pai_imagens 		= elemento_pai_imagens.get_attribute('outerHTML')
 		soup_pai_imagens		= BeautifulSoup(html_pai_imagens, 'html.parser')
 		imagens 				= soup_pai_imagens.select('img.lg-object')
-
+		# print(imagens)
+		
 		# Criando array de src das imagens
 		for imagen in imagens:
 			link_das_imagens.append(imagen.attrs['src'])
 
+		# BUSCANDO VIDEO
+		iframe = soup_pai_imagens.select("div.lg-item>div.lg-video-cont>div.lg-video>iframe")
+
+		if(iframe != []):
+			link_das_imagens.append(iframe)
+
+		# print("IFRAME")
+		# print(soup_pai_imagens.select("div.lg-item>div.lg-video-cont>div.lg-video>iframe"))
+
 		driver.quit() # Fecha o navegador
 		return link_das_imagens
 
-	def atualizar_botao_carregando(self):
-		self.label_carregando.config(width=((self.tamanho_botao_carregando)+1))
-		self.tamanho_botao_carregando+=1
-
 	def buscar_dados_imovel(self, paginaDoImovel):
-		self.app.update()
 		titulo_do_imovel 			= self.elementoExiste('imovel-header', '.imovel-header>h2', paginaDoImovel)
 		preco_imovel 				= self.elementoExiste('linhavalor', 'li.linhavalor>span>strong', paginaDoImovel)
 		tamanho_imovel 				= self.elementoExiste('tabelaarea', 'li.tabelaarea', paginaDoImovel).replace('m²','')
