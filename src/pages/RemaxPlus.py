@@ -6,12 +6,18 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
+# INTERFACE GRÁFICA 
+# from tkinter import *
+# from tkinter import ttk
+# import os
+# import shutil
+# import time
 
-from tkinter import *
-from tkinter import ttk
+# PLANILHA
+import openpyxl
+import uuid
+
 import os
-import shutil
-import time
 
 from .Page import Page
 
@@ -30,6 +36,77 @@ class RemaxPlus(Page):
 	def gerar_planilha(self,paginacorretor):
 		self.get_imoveis_from_corretor_page(paginacorretor)
 
+		# CRIAR UMA PLANILHA(BOOK)
+		book = openpyxl.Workbook()
+
+		# COMO VIZUALIZAR PÁGINAS EXISTENTES
+		print(book.sheetnames)
+
+		# COMO CRIAR UMA PÁGINA
+		
+		# SELECIONANDO UMA PÁGINA
+		imovel_page = book['Sheet']
+
+		# NOME DA LINHA
+		imovel_page.append([
+			'titulo-do-imovel', 
+			"preco-imovel", 
+			'descricao-imovel', 
+			'tamanho-imovel', 
+			'numero-de-quartos', 
+			'numero-de-suites', 
+			'numero-de-banheiro', 
+			'numero-de-vagas-de-carro',
+			'video'
+			'imagem1',
+			'imagem2',
+			'imagem3',
+			'imagem4',
+			'imagem5',
+			'imagem6',
+			'imagem7',
+			'imagem8',
+			'imagem9',
+			'imagem10',
+			'imagem11',
+			'imagem12',
+			'imagem13',
+			'imagem14',
+			'imagem15',
+			
+		])
+
+
+		# Montando array de imovels
+		for imovel in self.imoves_pegos:
+			todos_imoveis = [
+				imovel['titulo_do_imovel'],
+				imovel['preco_imovel'],
+				imovel['descricao_imovel'],
+				imovel['tamanho_imovel'],
+				imovel['numero_de_quartos'],
+				imovel['numero_de_suites'],
+				imovel['numero_de_banheiros'],
+				imovel['numero_de_vagas_de_carro'],
+				imovel['link_imagens']['video'] if imovel['link_imagens']['video'] != None else "" 
+			]
+
+
+			for imagem in imovel['link_imagens']['imagens']:
+				todos_imoveis.append(imagem)
+
+			imovel_page.append(todos_imoveis)
+
+
+
+		# ADICIONANDO DADO EM UM PÁGINA
+		nome_planilha = uuid.uuid1()
+
+		# SALVAR A PLANILHA
+		book.save("planilhas/{}.xlsx".format(nome_planilha))
+
+		print("Planilha criada com sucesso: /planilhas/{}.xlsx".format(nome_planilha))
+
 	# funcao para realizar o webscraping
 	def get_imoveis_from_corretor_page(self, url):
 		
@@ -41,7 +118,6 @@ class RemaxPlus(Page):
 
 		for cardImovelA in indicadores:
 			# print(" =============== BUSCANDO DADOS DO IMÓVEL =============== \n")
-
 			hrefDoCard 				= cardImovelA['href'] # Pega o href de do <a>
 			urlPaginaImovel 		= f'https://remaxrs.com.br/{hrefDoCard}' # Monta a url da pagina do imovel 
 			requisicaoPaginaImovel	= requests.get(urlPaginaImovel) # Faz a requisição para página com os dados do imovel
@@ -57,9 +133,7 @@ class RemaxPlus(Page):
 		
 			self.imoves_pegos.append(dados_imovel)
 			self.numero_de_imoveis_pegos += 1
-		
-		print("TOTAL IMÓVEI PEGOS: {}".format(self.numero_de_imoveis_pegos))
-		print(self.imoves_pegos)
+			os.system("cls")
 
 	def elementoExiste(self, buscador_do_elemento, buscadorCss, paginaDoImovel):
 		if buscador_do_elemento in paginaDoImovel.prettify():
@@ -85,7 +159,10 @@ class RemaxPlus(Page):
 		html_total_imagens 		= elemento_total_imagens.get_attribute('outerHTML')
 		soup_total_imagens 		= BeautifulSoup(html_total_imagens, 'html.parser')
 		total_de_imagens 		= int(soup_total_imagens.text)
-		link_das_imagens 		= []
+		link_das_imagens 		= {
+			"imagens": [],
+			"video": None
+		}
 		
 		time.sleep(2)
 
@@ -96,31 +173,31 @@ class RemaxPlus(Page):
 		for i in range(1, total_de_imagens, 1):
 			driver.find_element(By.CSS_SELECTOR, 'div.lg-next').click()
 			time.sleep(1)
+			print("Imagem {} coletada!".format(i))
 
 		# Pegando o src das imagens
 		elemento_pai_imagens 	= driver.find_element(By.CSS_SELECTOR, 'div.lg-inner')
 		html_pai_imagens 		= elemento_pai_imagens.get_attribute('outerHTML')
 		soup_pai_imagens		= BeautifulSoup(html_pai_imagens, 'html.parser')
 		imagens 				= soup_pai_imagens.select('img.lg-object')
-		# print(imagens)
 		
 		# Criando array de src das imagens
 		for imagen in imagens:
-			link_das_imagens.append(imagen.attrs['src'])
+			link_das_imagens['imagens'].append(imagen.attrs['src'])
 
 		# BUSCANDO VIDEO
 		iframe = soup_pai_imagens.select("div.lg-item>div.lg-video-cont>div.lg-video>iframe")
 
 		if(iframe != []):
-			link_das_imagens.append(iframe)
-
-		# print("IFRAME")
-		# print(soup_pai_imagens.select("div.lg-item>div.lg-video-cont>div.lg-video>iframe"))
+			link_das_imagens['video'] = iframe[0]['src']
+			print('Vídeo coletado com sucesso!')
 
 		driver.quit() # Fecha o navegador
 		return link_das_imagens
 
 	def buscar_dados_imovel(self, paginaDoImovel):
+		os.system("cls")
+		print("Número de imóveis pegos até o momento: {}".format(self.numero_de_imoveis_pegos))
 		titulo_do_imovel 			= self.elementoExiste('imovel-header', '.imovel-header>h2', paginaDoImovel)
 		preco_imovel 				= self.elementoExiste('linhavalor', 'li.linhavalor>span>strong', paginaDoImovel)
 		tamanho_imovel 				= self.elementoExiste('tabelaarea', 'li.tabelaarea', paginaDoImovel).replace('m²','')
