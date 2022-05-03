@@ -161,7 +161,7 @@ class RemaxPlus(Page):
 		total_de_imagens 		= int(soup_total_imagens.text)
 		link_das_imagens 		= {
 			"imagens": [],
-			"video": None
+			"video": "null"
 		}
 		
 		time.sleep(2)
@@ -204,15 +204,18 @@ class RemaxPlus(Page):
 		descricao_imovel 			= self.elementoExiste('boxleiamais', '.boxleiamais.maisdescricao>p', paginaDoImovel)
 		
 		numero_de_quartos 			= self.elementoExiste('tabeladormitorios', '.tabeladormitorios', paginaDoImovel)
-		numero_de_suites			= None
+		numero_de_suites			= "null"
 		numero_de_banheiros 		= self.elementoExiste('tabelabanheiros', 'li.tabelabanheiros', paginaDoImovel)
 		numero_de_vagas_de_carro 	= self.elementoExiste('tabelavagas', 'li.tabelavagas', paginaDoImovel)
 
-		if not (numero_de_quartos is None):
+		# if not (numero_de_quartos is None):
+		# 	if "suíte" in numero_de_quartos:
+		# 		localizaSeparador 	= list(numero_de_quartos).index('(')
+		# 		numero_de_suites 	= list(numero_de_quartos)[(localizaSeparador + 1)]
+		if not (numero_de_quartos == "null"):
 			if "suíte" in numero_de_quartos:
 				localizaSeparador 	= list(numero_de_quartos).index('(')
 				numero_de_suites 	= list(numero_de_quartos)[(localizaSeparador + 1)]
-
 		dados = {
 			"titulo_do_imovel": titulo_do_imovel,
 			"preco_imovel": preco_imovel,
