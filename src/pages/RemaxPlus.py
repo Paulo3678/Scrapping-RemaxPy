@@ -57,7 +57,7 @@ class RemaxPlus(Page):
 			'numero-de-suites', 
 			'numero-de-banheiro', 
 			'numero-de-vagas-de-carro',
-			'video'
+			'video',
 			'imagem1',
 			'imagem2',
 			'imagem3',
@@ -139,7 +139,7 @@ class RemaxPlus(Page):
 		if buscador_do_elemento in paginaDoImovel.prettify():
 			return ((paginaDoImovel.select(buscadorCss))[0].text).strip()
 		else:
-			return None
+			return "null"
 
 	def buscar_imagens(self, urlPaginaImovel):
 		# Instanciando o Chrome
