@@ -6,4 +6,9 @@ chromewebdriver
 
 
 #Interface grafica
-tkinter
+pip install tkinter
+
+
+# NOVOS
+
+pip install openpyxl # Planilha Excell
