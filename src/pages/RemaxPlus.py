@@ -17,6 +17,7 @@ from selenium.webdriver.common.by import By
 import openpyxl
 import uuid
 
+# OUTROS
 import os
 
 from .Page import Page
@@ -24,12 +25,11 @@ from .Page import Page
 class RemaxPlus(Page):
 
 	def __init__(self):
-		self.numero_de_imoveis_pegos 		= 0
-		self.imoves_pegos 					= []
+		self.numero_de_imoveis_pegos 	= 0
+		self.imoves_pegos 				= []
 
 	def iniciar(self):
-		print(self)
-		paginacorretor = input("Digite a url da página do corretor: ")
+		paginacorretor = input("\033[94mDigite a url da página do corretor: \033[1;97m")
 
 		self.gerar_planilha(paginacorretor)
 
@@ -38,11 +38,6 @@ class RemaxPlus(Page):
 
 		# CRIAR UMA PLANILHA(BOOK)
 		book = openpyxl.Workbook()
-
-		# COMO VIZUALIZAR PÁGINAS EXISTENTES
-		print(book.sheetnames)
-
-		# COMO CRIAR UMA PÁGINA
 		
 		# SELECIONANDO UMA PÁGINA
 		imovel_page = book['Sheet']
@@ -97,36 +92,31 @@ class RemaxPlus(Page):
 
 			imovel_page.append(todos_imoveis)
 
-
-
 		# ADICIONANDO DADO EM UM PÁGINA
 		nome_planilha = uuid.uuid1()
 
 		# SALVAR A PLANILHA
 		book.save("planilhas/{}.xlsx".format(nome_planilha))
 
-		print("Planilha criada com sucesso: /planilhas/{}.xlsx".format(nome_planilha))
+		print("\033[1;32mPlanilha criada com sucesso: /planilhas/{}.xlsx \033[1;97m".format(nome_planilha))
 
-	# funcao para realizar o webscraping
 	def get_imoveis_from_corretor_page(self, url):
 		
-		#Pega os dados da url
+		#PEGANDO OS DADOS DA URL
 		pagina 		= requests.get(url) #retorna 200 para req sucesso
 		#pagina.content: Conteudo da Página; html.parser: interpreta o html
 		soup 		= BeautifulSoup(pagina.content, 'html.parser')
 		indicadores	= soup.select('.card-imovel>a')
 
 		for cardImovelA in indicadores:
-			# print(" =============== BUSCANDO DADOS DO IMÓVEL =============== \n")
+			# BUSCANDO DADOS DO IMÓVEL
 			hrefDoCard 				= cardImovelA['href'] # Pega o href de do <a>
 			urlPaginaImovel 		= f'https://remaxrs.com.br/{hrefDoCard}' # Monta a url da pagina do imovel 
 			requisicaoPaginaImovel	= requests.get(urlPaginaImovel) # Faz a requisição para página com os dados do imovel
 			paginaDoImovel 			= BeautifulSoup(requisicaoPaginaImovel.content, 'html.parser') # Interpreta o html da página
 			dados_imovel 			= self.buscar_dados_imovel(paginaDoImovel)
 
-			# print("\n =============== DADOS CARREGADOS COM SUCESSO =============== \n")
-
-			# ================= Buscando URL das Imagens =================
+			# BUSCANDO URL DAS IMAGENS
 			link_das_imagens = self.buscar_imagens(urlPaginaImovel)
 			
 			dados_imovel['link_imagens'] = link_das_imagens
@@ -173,7 +163,7 @@ class RemaxPlus(Page):
 		for i in range(1, total_de_imagens, 1):
 			driver.find_element(By.CSS_SELECTOR, 'div.lg-next').click()
 			time.sleep(1)
-			print("Imagem {} coletada!".format(i))
+			print("\033[1;32mImagem {} coletada!".format(i))
 
 		# Pegando o src das imagens
 		elemento_pai_imagens 	= driver.find_element(By.CSS_SELECTOR, 'div.lg-inner')
@@ -190,14 +180,14 @@ class RemaxPlus(Page):
 
 		if(iframe != []):
 			link_das_imagens['video'] = iframe[0]['src']
-			print('Vídeo coletado com sucesso!')
+			print("\033[1;32mVídeo coletado com sucesso!\033[1;97m")
 
 		driver.quit() # Fecha o navegador
 		return link_das_imagens
 
 	def buscar_dados_imovel(self, paginaDoImovel):
 		os.system("cls")
-		print("Número de imóveis pegos até o momento: {}".format(self.numero_de_imoveis_pegos))
+		print("\033[1;31mNúmero de imóveis pegos até o momento: {}\033[1;97m".format(self.numero_de_imoveis_pegos))
 		titulo_do_imovel 			= self.elementoExiste('imovel-header', '.imovel-header>h2', paginaDoImovel)
 		preco_imovel 				= self.elementoExiste('linhavalor', 'li.linhavalor>span>strong', paginaDoImovel)
 		tamanho_imovel 				= self.elementoExiste('tabelaarea', 'li.tabelaarea', paginaDoImovel).replace('m²','')
