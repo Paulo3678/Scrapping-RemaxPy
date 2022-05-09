@@ -1,14 +1,9 @@
 pip install requests # Para fazer requisições http e extraia o html da pagina
 pip install beautifulsoup4 # Permiti extrair informações do html pego utilizando seletores de html/css
-pip install pandas # Para passa pra csv
 pip install selenium # Para buscar dados dinâmicos
-chromewebdriver
-
-
-#Interface grafica
-pip install tkinter
-
-
-# NOVOS
-
 pip install openpyxl # Planilha Excell
+
+chromewebdriver:
+    Para que possa fazer a busca dos dados dinâmicos, baixe de acordo com sua versão do chromewebdriver
+    Para ver sua versão do Chrome: Ajuda->Sobre o Google Chrome
+    Página de Downloads: https://chromedriver.chromium.org/downloads

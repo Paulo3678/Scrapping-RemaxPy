@@ -1,17 +1,9 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-
-# INTERFACE GRÁFICA 
-# from tkinter import *
-# from tkinter import ttk
-# import os
-# import shutil
-# import time
 
 # PLANILHA
 import openpyxl
