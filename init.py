@@ -1,4 +1,4 @@
-from src.pages import RemaxPlus
+import RemaxPlus
 
 # url para testes: https://remaxrs.com.br/corretor/Bel-Cavalcanti
 
