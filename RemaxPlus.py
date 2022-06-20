@@ -1,3 +1,5 @@
+from ast import Try
+from nis import cat
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -124,12 +126,18 @@ class RemaxPlus():
 		else:
 			return "null"
 
+	def validarNovosDados(self, buscador, paginaDoImovel):
+		if paginaDoImovel[0].select(buscador) != []:
+			return paginaDoImovel[0].select(buscador)[0].text.strip()	
+		else:
+			return "null"
+
 	def buscar_imagens(self, urlPaginaImovel):
 		# Instanciando o Chrome
 		option = Options()  
 		option.headless = True
 		option.add_argument("log-level=3") # Desativa os logs no terminal
-		driver = webdriver.Chrome("./chromedriver",options=option) # options=option, faz com que o chrome não aparece e rode em background
+		driver = webdriver.Chrome("./chromedriver", options=option) # options=option, faz com que o chrome não aparece e rode em background
 		# options=option
 
 		driver.get(urlPaginaImovel)
@@ -181,24 +189,30 @@ class RemaxPlus():
 	def buscar_dados_imovel(self, paginaDoImovel):
 		os.system("clear")
 		print("\033[1;31mNúmero de imóveis pegos até o momento: {}\033[1;97m".format(self.numero_de_imoveis_pegos))
-		titulo_do_imovel 			= self.elementoExiste('imovel-header', '.imovel-header>h2', paginaDoImovel)
-		preco_imovel 				= self.elementoExiste('linhavalor', 'li.linhavalor>span>strong', paginaDoImovel)
-		tamanho_imovel 				= self.elementoExiste('tabelaarea', 'li.tabelaarea', paginaDoImovel).replace('m²','')
-		descricao_imovel 			= self.elementoExiste('boxleiamais', '.boxleiamais.maisdescricao>p', paginaDoImovel)
-		
-		numero_de_quartos 			= self.elementoExiste('tabeladormitorios', '.tabeladormitorios', paginaDoImovel)
-		numero_de_suites			= "null"
-		numero_de_banheiros 		= self.elementoExiste('tabelabanheiros', 'li.tabelabanheiros', paginaDoImovel)
-		numero_de_vagas_de_carro 	= self.elementoExiste('tabelavagas', 'li.tabelavagas', paginaDoImovel)
 
-		# if not (numero_de_quartos is None):
-		# 	if "suíte" in numero_de_quartos:
-		# 		localizaSeparador 	= list(numero_de_quartos).index('(')
-		# 		numero_de_suites 	= list(numero_de_quartos)[(localizaSeparador + 1)]
+
+		dadosImovel = paginaDoImovel.select(".tbl_firstline")
+		
+		titulo_do_imovel 			= self.elementoExiste('imovel-header', '.imovel-header>h2', paginaDoImovel)
+		descricao_imovel 			= self.elementoExiste('boxleiamais', '.boxleiamais.maisdescricao>p', paginaDoImovel)
+		preco_imovel 				= self.validarNovosDados('li.linhavalor>div>p>strong', dadosImovel)
+		tamanho_imovel 				= self.validarNovosDados('li[title="Área privativa"]', dadosImovel)
+		
+		numero_de_quartos 			= self.validarNovosDados('li[title="Dormitórios"]', dadosImovel)
+		numero_de_suites			= "null"
+		numero_de_banheiros 		= self.validarNovosDados('li[title="Banheiros"]', dadosImovel)
+		numero_de_vagas_de_carro 	= self.validarNovosDados('li[title="Vagas"]', dadosImovel)
+
+	
+		if not (numero_de_quartos is None):
+			if "suíte" in numero_de_quartos:
+				localizaSeparador 	= list(numero_de_quartos).index('(')
+				numero_de_suites 	= list(numero_de_quartos)[(localizaSeparador + 1)]
 		if not (numero_de_quartos == "null"):
 			if "suíte" in numero_de_quartos:
 				localizaSeparador 	= list(numero_de_quartos).index('(')
 				numero_de_suites 	= list(numero_de_quartos)[(localizaSeparador + 1)]
+
 		dados = {
 			"titulo_do_imovel": titulo_do_imovel,
 			"preco_imovel": preco_imovel,
@@ -210,4 +224,5 @@ class RemaxPlus():
 			"numero_de_vagas_de_carro": numero_de_vagas_de_carro,
 			"link_imagens": []
 		}
+
 		return dados
